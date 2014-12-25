@@ -6,8 +6,15 @@
     "autoload": {
         "psr-0": { "": "src/", "SymfonyStandard": "app/" }
     },
+	"repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/bakulev/TwigBundle"
+        }
+    ],
     "require": {
         "php": ">=5.3.3",
+		"symfony/twig-bundle": "dev-patch-1",
         "symfony/symfony": "2.6.*",
         "doctrine/orm": "~2.2,>=2.2.3",
         "doctrine/doctrine-bundle": "~1.2",

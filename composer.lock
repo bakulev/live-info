@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "bccd1fa8d5b453e11210ea4bb778e53c",
+    "hash": "4f84e27e93120acbb8499d2f315fbf71",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -1551,6 +1551,67 @@
             "time": "2014-12-03 16:40:43"
         },
         {
+            "name": "symfony/twig-bundle",
+            "version": "dev-patch-1",
+            "target-dir": "Symfony/Bundle/TwigBundle",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/bakulev/TwigBundle.git",
+                "reference": "9afadd44e719b06fec3c0103129492d3add0135a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/bakulev/TwigBundle/zipball/9afadd44e719b06fec3c0103129492d3add0135a",
+                "reference": "9afadd44e719b06fec3c0103129492d3add0135a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3",
+                "symfony/http-foundation": "~2.5",
+                "symfony/http-kernel": "~2.1",
+                "symfony/twig-bridge": "~2.6"
+            },
+            "require-dev": {
+                "symfony/config": "~2.2",
+                "symfony/dependency-injection": "~2.2",
+                "symfony/expression-language": "~2.4",
+                "symfony/framework-bundle": "~2.1",
+                "symfony/routing": "~2.1",
+                "symfony/stopwatch": "~2.2",
+                "symfony/templating": "~2.1"
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Symfony\\Bundle\\TwigBundle\\": ""
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "http://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony TwigBundle",
+            "homepage": "http://symfony.com",
+            "support": {
+                "source": "https://github.com/bakulev/TwigBundle/tree/patch-1"
+            },
+            "time": "2014-12-25 08:11:47"
+        },
+        {
             "name": "twig/extensions",
             "version": "v1.2.0",
             "source": {
@@ -1663,7 +1724,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "symfony/twig-bundle": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
