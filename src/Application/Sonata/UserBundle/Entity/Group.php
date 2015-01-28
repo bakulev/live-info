@@ -20,11 +20,16 @@ use Sonata\UserBundle\Entity\BaseGroup as BaseGroup;
  *   working with object : http://www.doctrine-project.org/projects/orm/2.0/docs/reference/working-with-objects/en
  *
  * @author <yourname> <youremail>
+ * @ ORM\Entity
+ * @ ORM\Table(name="fos_user_group")
  */
 class Group extends BaseGroup
 {
     /**
      * @var integer $id
+     * @ ORM\Id
+     * @ ORM\Column(type="integer")
+     * @ ORM\GeneratedValue(strategy="AUTO")
      */
     protected $id;
 

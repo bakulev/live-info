@@ -20,11 +20,16 @@ use Sonata\UserBundle\Entity\BaseUser as BaseUser;
  *   working with object : http://www.doctrine-project.org/projects/orm/2.0/docs/reference/working-with-objects/en
  *
  * @author <yourname> <youremail>
+ * @ ORM\Entity
+ * @ ORM\Table(name="fos_user_user")
  */
 class User extends BaseUser
 {
     /**
      * @var integer $id
+     * @ ORM\Id
+     * @ ORM\Column(type="integer")
+     * @ ORM\GeneratedValue(strategy="AUTO")
      */
     protected $id;
 
