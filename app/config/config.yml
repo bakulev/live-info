@@ -5,7 +5,7 @@ imports:
 
 framework:
     #esi:             ~
-    #translator:      { fallback: "%locale%" }
+    translator:      { fallback: "%locale%" }
     secret:          "%secret%"
     router:
         resource: "%kernel.root_dir%/config/routing.yml"
@@ -28,7 +28,22 @@ framework:
 fos_user:
     db_driver: orm
     firewall_name: main
-    user_class: Acme\UserBundle\Entity\User
+    #user_class: Acme\UserBundle\Entity\User
+    #user_class: Sonata\UserBundle\Entity\BaseUser
+    user_class: Application\Sonata\UserBundle\Entity\User
+    group:
+        #group_class:   Sonata\UserBundle\Entity\BaseGroup
+        group_class:   Application\Sonata\UserBundle\Entity\Group
+        group_manager: sonata.user.orm.group_manager
+    service:
+        user_manager: sonata.user.orm.user_manager
+
+sonata_admin:
+    title: Live-info
+
+sonata_user:
+    security_acl: true
+    manager_type: orm
 
 sonata_block:
     default_contexts: [cms]
@@ -37,6 +52,10 @@ sonata_block:
         sonata.admin.block.admin_list:
             contexts:   [admin]
         # Your other blocks
+        sonata.user.block.menu:    # used to display the menu in profile pages
+        sonata.user.block.account: # used to display menu option (login option)
+        sonata.block.service.text: # used to if you plan to use Sonata user routes
+
 knp_menu:
     twig:  # use "twig: false" to disable the Twig extension and the TwigRenderer
         template: knp_menu.html.twig
@@ -79,6 +98,8 @@ doctrine:
         #     path:     "%database_path%"
         mapping_types:
             enum: string
+        types:
+            json: Sonata\Doctrine\Types\JsonType
     orm:
         auto_generate_proxy_classes: "%kernel.debug%"
         auto_mapping: true

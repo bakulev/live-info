@@ -57,6 +57,9 @@ security:
             logout:       true
             anonymous:    true
 
+    acl:
+        connection: default
+
     # with these settings you can restrict or allow access for different parts
     # of your application based on roles, ip, host or methods
     # http://symfony.com/doc/current/book/security.html#security-book-access-control-matching-options
