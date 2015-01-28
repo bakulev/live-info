@@ -51,7 +51,7 @@ git commit -am "symfony and git init"
 ```
 создаётся ссылка на репозиторий в сети, проверка и заливка: 
 ```bash
-git remote add github https://bakulev:veluka21@github.com/bakulev/live-info.git
+git remote add github https://bakulev:password@github.com/bakulev/live-info.git
 git remote show
 git remote show github
 git push github master
