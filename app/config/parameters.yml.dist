@@ -1,11 +1,11 @@
 # This file is a "template" of what your parameters.yml file should look like
 parameters:
     database_driver:   pdo_mysql
-    database_host:     127.0.0.1
+    database_host:     eu-cdbr-west-01.cleardb.com
     database_port:     ~
-    database_name:     symfony
-    database_user:     root
-    database_password: ~
+    database_name:     heroku_f61d394de637e17
+    database_user:     b9a6cb53fcd6ed
+    database_password: 22b86307
     # You should uncomment this if you want use pdo_sqlite
     # database_path: "%kernel.root_dir%/data.db3"
 
@@ -17,4 +17,4 @@ parameters:
     locale:            en
 
     # A secret key that's used to generate certain security-related tokens
-    secret:            ThisTokenIsNotSoSecretChangeIt
+    secret:            29e134b31644e037dbab8793476ae3217411e73c
