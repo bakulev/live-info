@@ -55,7 +55,7 @@ git remote add github https://bakulev:password@github.com/bakulev/live-info.git
 git remote show
 git remote show github
 git push github master
-heroku config:set COMPOSER_GITHUB_OAUTH_TOKEN=2e7e3058dfb0a514c8f33f71d457764790f609dc
+heroku config:set COMPOSER_GITHUB_OAUTH_TOKEN=githuboauthtoken
 ```
 возврат к ранней версии
 ```bash
@@ -72,8 +72,8 @@ heroku create live-info-symfony --region eu
 git remote -v
 ```
 ```text
-github  https://bakulev:veluka21@github.com/bakulev/live-info.git (fetch)
-github  https://bakulev:veluka21@github.com/bakulev/live-info.git (push)
+github  https://bakulev:password@github.com/bakulev/live-info.git (fetch)
+github  https://bakulev:password@github.com/bakulev/live-info.git (push)
 heroku  git@heroku.com:live-info-symfony.git (fetch)
 heroku  git@heroku.com:live-info-symfony.git (push)
 ```
