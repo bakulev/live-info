@@ -1,170 +1,372 @@
-Symfony Standard Edition
-========================
+#Создание административного интерфейса Symfony 2. Sonata Admin Bundle.
 
-Welcome to the Symfony Standard Edition - a fully-functional Symfony2
-application that you can use as the skeleton for your new applications.
+@(Блокнот)[programming|Symfony2]
 
-This document contains information on how to download, install, and start
-using Symfony. For a more detailed explanation, see the [Installation][1]
-chapter of the Symfony Documentation.
+[TOC]
 
-1) Installing the Standard Edition
-----------------------------------
+##Глобальная установка Symfony2
+Используется [инструкция](http://symfony.com/doc/current/quick_tour/the_big_picture.html):
 
-When it comes to installing the Symfony Standard Edition, you have the
-following options.
+```bash
+curl -LsS http://symfony.com/installer > symfony.phar
+sudo mv symfony.phar /usr/local/bin/symfony
+chmod a+x /usr/local/bin/symfony
+```
+##Создание нового проекта:
 
-### Use Composer (*recommended*)
+```bash
+symfony new live-info
+```
 
-As Symfony uses [Composer][2] to manage its dependencies, the recommended way
-to create a new project is to use it.
+## Подготовка git
 
-If you don't have Composer yet, download it following the instructions on
-http://getcomposer.org/ or just run the following command:
+Используются команды из статьи [Ежедневная работа с Git](http://habrahabr.ru/post/174467/)
 
-    curl -s http://getcomposer.org/installer | php
+создаётся файл `.gitignore`:
+```text
+/web/bundles/
+/app/bootstrap.php.cache
+/app/cache/*
+/app/config/parameters.yml
+/app/logs/*
+!app/cache/.gitkeep
+!app/logs/.gitkeep
+/build/
+/vendor/
+/bin/
+/composer.phar
+```
+инициализируется git
+```bash
+git init
+```
+создаётся репозиторий на github (https://github.com/bakulev/live-info)
 
-Then, use the `create-project` command to generate a new Symfony application:
+добавление первичных файлов:
+```bash
+touch README.md
+git add README.md
+git add .
+git commit -am "symfony and git init"
+```
+создаётся ссылка на репозиторий в сети, проверка и заливка: 
+```bash
+git remote add github https://bakulev:veluka21@github.com/bakulev/live-info.git
+git remote show
+git remote show github
+git push github master
+heroku config:set COMPOSER_GITHUB_OAUTH_TOKEN=2e7e3058dfb0a514c8f33f71d457764790f609dc
+```
+возврат к ранней версии
+```bash
+git checkout <commit>
+```
 
-    php composer.phar create-project symfony/framework-standard-edition path/to/install
+## Создание приложения Heroku
+Создание приложения в регионе EU:
+```bash
+heroku create live-info-symfony --region eu
+```
+Проверка, что добавилась ссылка на репозиторий heroku
+```bash
+git remote -v
+```
+```text
+github  https://bakulev:veluka21@github.com/bakulev/live-info.git (fetch)
+github  https://bakulev:veluka21@github.com/bakulev/live-info.git (push)
+heroku  git@heroku.com:live-info-symfony.git (fetch)
+heroku  git@heroku.com:live-info-symfony.git (push)
+```
+Для установка нужных расширений php добавить в `composer.json` указанные разделы:
+```json
+"require": {
+        "php": ">=5.3.3",
+        "ext-memcached": "*",
+        "ext-mbstring": "*",
+        }
+```
+Создать файл `Procfile` с указанием параметров запуска приложения:
+```
+web: bin/heroku-php-apache2 web/
+```
 
-Composer will install Symfony and all its dependencies under the
-`path/to/install` directory.
+## Первый пробный запуск проекта по умолчанию
 
-### Download an Archive File
+Используются инструкции из статьи [How to Deploy a Symfony Application](http://symfony.com/doc/current/cookbook/deployment/tools.html)
+Проверка, что система удовлетворяет требованиям:
+```bash
+php app/check.php
+```
+Указание рабочей конфигурации
+```bash
+heroku config:set SYMFONY_ENV=prod
+```
+Инициализация
+```
+composer update
+composer install --optimize-autoloader
+php app/console cache:clear
+php app/console assetic:dump
+```
+Содержимое файла `bin/chmod-www-data.sh`, Изменение прав для локального запуска и проверка:
+```bash
+#!/bin/bash
+sudo chown -R www-data.www-data app/cache
+sudo chown -R www-data.www-data app/logs
+```
+```bash
+bin/chmod-www-data.sh
+```
+Добавляются разрешённые IP-адреса для просмотра dev версии в файле `web/app_dev.php`:
+```php
+if (isset($_SERVER['HTTP_CLIENT_IP'])
+    || !(
+        in_array(@$_SERVER['REMOTE_ADDR'], array('127.0.0.1', '109.188.125.21', 'fe80::1', '::1'))
+        || in_array(@$_SERVER['HTTP_X_FORWARDED_FOR'], array('109.188.125.21'))
+        || php_sapi_name() === 'cli-server'
+  )
+) {
+     header('HTTP/1.0 403 Forbidden');
+     exit('You are not allowed to access this file. Check '.basename(__FILE__).' for more information.');
+}
+```
+в файле `web/config.php`:
+```php
+if (!in_array(@$_SERVER['REMOTE_ADDR'], array(
+     '127.0.0.1',
+     '::1',
+  '109.188.125.21',
+))
+    || !(in_array(@$_SERVER['HTTP_X_FORWARDED_FOR'], array('109.188.125.21'))) {
+     header('HTTP/1.0 403 Forbidden');
+     exit('This script is only accessible from localhost.');
+ }
+```
+В файле `composer.json` добавляется в раздел `require` пункт из раздела `require-dev` для того, чтобы на heroku подгружались нужные модули для просмотра dev:
+```json
+"sensio/generator-bundle": "~2.3"
+```
+Как описано в инструкции (https://devcenter.heroku.com/articles/getting-started-with-symfony2) при загрузке на heroku dev не подгружается, только prod.
 
-To quickly test Symfony, you can also download an [archive][3] of the Standard
-Edition and unpack it somewhere under your web server root directory.
+добавляется раздел `depositories` для загрузки исправленной версии Twig:
+```json
+"repositories": [
+        {
+             "type": "vcs",
+             "url": "https://github.com/bakulev/TwigBundle"
+         }
+     ],
+```
+и добавляется в разел `require` новый исправленный Twig:
+```json
+"symfony/twig-bundle": "dev-patch-1",
+```
+Теперь можно посмотреть на результат (http://virt-srv1.mipt.ru/live-info/web/app_dev.php/demo/hello/asdfsad)
+Изменение прав на cache и log обратно, чтобы cache:clear работал нормально:
+```bash
+bin/chmod-bakulev.sh
+```
 
-If you downloaded an archive "without vendors", you also need to install all
-the necessary dependencies. Download composer (see above) and run the
-following command:
+## Исправление ошибки в TwigBundle
 
-    php composer.phar install
+В оригинальном файле `vendor/symfony/symfony/src/Symfony/Bundle/TwigBundle/Resources/views/layout.html.twig` указывается абсолютный путь к css:
+```
+<link href="{{ asset('bundles/framework/css/structure.css', absolute=true) }}" rel="stylesheet" />
+<link href="{{ asset('bundles/framework/css/body.css', absolute=true) }}" rel="stylesheet" />
+```
+Из-за этого не работает загрузка через https после инсталляции на heroku.
 
-2) Checking your System Configuration
--------------------------------------
+Приходится заходить на (https://github.com/symfony/TwigBundle/blob/master/Resources/views/layout.html.twig) и нажимать кнопку "Редактировать". Удалить `, absolute=true` и сохранить изменения.
 
-Before starting coding, make sure that your local system is properly
-configured for Symfony.
+Автоматически после редактирования создаётся форк с веткой "patch-1".
 
-Execute the `check.php` script from the command line:
+Чтобы её использовать нужно согласно [документации](https://getcomposer.org/doc/05-repositories.md#vcs) в файле `composer.json` добавить:
+```
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/bakulev/TwigBundle"
+        }
+    ],
+```
+И в разделе "require" изменить или добавить указание на исправленный репозиторий.
+```
+    "symfony/twig-bundle": "dev-patch-1",
+```
+И запустить `composer update`
 
-    php app/check.php
+##Установка **FOSUserBundle**
+Для хранения пользователей в базе данных нужно установить **FOSUserBundle**. Для этого используется инструкция (https://github.com/FriendsOfSymfony/FOSUserBundle/blob/master/Resources/doc/index.md)
 
-The script returns a status code of `0` if all mandatory requirements are met,
-`1` otherwise.
+Добавляется пакет:
+```bash
+sudo bin/chmod-bakulev.sh
+composer require friendsofsymfony/user-bundle "~2.0@dev"
+```
+Добавляется пакет в файл `app/AppKernel.php`:
+```php
+public function registerBundles()
+{
+    $bundles = array(
+        // ...
+        new FOS\UserBundle\FOSUserBundle(),
+    );
+}
+```
+Создаём пакет как в примере:
+```bash
+php app/console generate:bundle --namespace=Acme/UserBundle
+```
+Добавляем файл `src/Acme/UserBundle/Entity/User.php`.
+Генерируем entity:
+```bash
+php app/console doctrine:generate:entities Acme/UserBundle/Entity/User
+```
+Изменяем файлы `app/config/security.yml`.
+Добавляем конфигурацию `fos_user` и исправление ошибки как описано в (http://symfony.com/doc/2.7/cookbook/doctrine/dbal.html) в файл `app/config/config.yml`:
+```json
+fos_user:
+    db_driver: orm
+    firewall_name: main
+    user_class: Acme\UserBundle\Entity\User
+doctrine:
+    dbal:
+        #Для обхода ошибки `Unknown database type enum requested`
+        mapping_types:
+            enum: string
+```
+Добавляются пути `app/config/routing.yml`:
+```json
+fos_user:
+    resource: "@FOSUserBundle/Resources/config/routing/all.xml"
+```
+Добавляется add-on mysql для heroku:
+```bash
+heroku addons:add cleardb:ignite
+```
+В файле `app/config/parameters.yml` и `app/config/parameters.yml.dist` (его использует модуль `incenteev/composer-parameter-handler` при установке на heroku) указываются параметры подключения к БД.
+Обновляется схема БД:
+```bash
+php app/console doctrine:schema:update --force
+```
+Добавить нового пользователя с правами администратора и пробного пользователя согласно документации (https://github.com/FriendsOfSymfony/FOSUserBundle/blob/master/Resources/doc/command_line_tools.md):
+```bash
+php app/console fos:user:create admin --super-admin
+php app/console fos:user:create testuser test@example.com p@ssword
+```
+Можно смотреть что получилось предварительно установив права:
+```bash
+sudo bin/chmod-www-data.sh
+```
 
-Access the `config.php` script from a browser:
+## Установка необходимых зависимостей для AdminBundle
 
-    http://localhost/path-to-project/web/config.php
+Используется инструкция (http://sonata-project.org/bundles/admin/master/doc/reference/installation.html)
 
-If you get any warnings or recommendations, fix them before moving on.
+```bash
+composer require sonata-project/admin-bundle
+composer require sonata-project/block-bundle
+composer require knplabs/knp-menu-bundle
+composer require sonata-project/doctrine-orm-admin-bundle
+```
 
-3) Browsing the Demo Application
---------------------------------
+Добавить в `AppKernel.php`:
+```php
+<?php
 
-Congratulations! You're now ready to use Symfony.
+// app/AppKernel.php
 
-From the `config.php` page, click the "Bypass configuration and go to the
-Welcome page" link to load up your first Symfony page.
+public function registerBundles()
+{
+    return array(
+        // ...
+        // set up basic sonata requirements
+        // ...
+        // The admin requires some twig functions defined in the security
+        // bundle, like is_granted
+        new Symfony\Bundle\SecurityBundle\SecurityBundle(),
+        // Add your dependencies
+        new Sonata\CoreBundle\SonataCoreBundle(),
+        new Sonata\BlockBundle\SonataBlockBundle(),
+        new Knp\Bundle\MenuBundle\KnpMenuBundle(),
+        // Database specifics bundles
+        new Sonata\DoctrineORMAdminBundle\SonataDoctrineORMAdminBundle(),
+        // Then add SonataAdminBundle
+        new Sonata\AdminBundle\SonataAdminBundle(),
+   );
+}
+```
 
-You can also use a web-based configurator by clicking on the "Configure your
-Symfony Application online" link of the `config.php` page.
+Добавить необходимую конфигурация в `app/config/config.yml`
+```yaml
+sonata_block:
+    default_contexts: [cms]
+    blocks:
+        # Enable the SonataAdminBundle block
+        sonata.admin.block.admin_list:
+            contexts:   [admin]
+        # Your other blocks
+knp_menu:
+    twig:  # use "twig: false" to disable the Twig extension and the TwigRenderer
+        template: knp_menu.html.twig
+    templating: false # if true, enables the helper for PHP templates
+    default_renderer: twig # The renderer to use, list is also available by default
+```
 
-To see a real-live Symfony page in action, access the following page:
+Install assets from the bundles:
+```bash
+php app/console assets:install web
+Обычно после инсталляции assets хорошо бы очистить кеш:
+php app/console cache:clear
+```
 
-    web/app_dev.php/demo/hello/Fabien
+Добавить пути соответсвтующие в `app/config/routing.yml`:
+```yaml
+admin:
+    resource: '@SonataAdminBundle/Resources/config/routing/sonata_admin.xml'
+    prefix: /admin
 
-4) Getting started with Symfony
--------------------------------
+_sonata_admin:
+    resource: .
+    type: sonata_admin
+    prefix: /admin
+```
 
-This distribution is meant to be the starting point for your Symfony
-applications, but it also contains some sample code that you can learn from
-and play with.
+Для просмотра как это работает:
+```bash
+sudo chown -R www-data.www-data app/cache
+sudo chown -R www-data.www-data app/logs
+```
+И можно обращаться по адресу: (http://virt-srv1.mipt.ru/live-info/web/app_dev.php/admin)
 
-A great way to start learning Symfony is via the [Quick Tour][4], which will
-take you through all the basic features of Symfony2.
+Добавление нужных файлов:
+```bash
+vi src/Acme/DemoBundle/Resources/config/admin.yml
+vi app/config/config.yml
+mkdir src/Acme/DemoBundle/Admin
+vi src/Acme/DemoBundle/Admin/PostAdmin.php
+vi src/Acme/DemoBundle/DependencyInjection/AcmeDemoBundleExtension.php
+```
 
-Once you're feeling good, you can move onto reading the official
-[Symfony2 book][5].
+Установка **SonataUserBundle**
+```bash
+sudo chown -R bakulev.bakulev app/cache
+sudo chown -R bakulev.bakulev app/logs
+composer require sonata-project/easy-extends-bundle
+composer require sonata-project/user-bundle --no-update
+composer update
+```
 
-A default bundle, `AcmeDemoBundle`, shows you Symfony2 in action. After
-playing with it, you can remove it by following these steps:
+Добавление в `app/AppKernel.php`:
+```php
+new FOS\UserBundle\FOSUserBundle(),
+new Sonata\UserBundle\SonataUserBundle('FOSUserBundle'),
+```
 
-  * delete the `src/Acme` directory;
+Добавление конфигурации в `app/config/config.yml`
 
-  * remove the routing entry referencing AcmeDemoBundle in `app/config/routing_dev.yml`;
+Установка авторизации через соц. сети: (https://github.com/hwi/HWIOAuthBundle/blob/master/Resources/doc/index.md)
+Интеграция **FOSUserBundle** и **HWIOAuthBundle** (https://gist.github.com/danvbe/4476697)
 
-  * remove the AcmeDemoBundle from the registered bundles in `app/AppKernel.php`;
 
-  * remove the `web/bundles/acmedemo` directory;
 
-  * empty the `security.yml` file or tweak the security configuration to fit
-    your needs.
-
-What's inside?
----------------
-
-The Symfony Standard Edition is configured with the following defaults:
-
-  * Twig is the only configured template engine;
-
-  * Doctrine ORM/DBAL is configured;
-
-  * Swiftmailer is configured;
-
-  * Annotations for everything are enabled.
-
-It comes pre-configured with the following bundles:
-
-  * **FrameworkBundle** - The core Symfony framework bundle
-
-  * [**SensioFrameworkExtraBundle**][6] - Adds several enhancements, including
-    template and routing annotation capability
-
-  * [**DoctrineBundle**][7] - Adds support for the Doctrine ORM
-
-  * [**TwigBundle**][8] - Adds support for the Twig templating engine
-
-  * [**SecurityBundle**][9] - Adds security by integrating Symfony's security
-    component
-
-  * [**SwiftmailerBundle**][10] - Adds support for Swiftmailer, a library for
-    sending emails
-
-  * [**MonologBundle**][11] - Adds support for Monolog, a logging library
-
-  * [**AsseticBundle**][12] - Adds support for Assetic, an asset processing
-    library
-
-  * **WebProfilerBundle** (in dev/test env) - Adds profiling functionality and
-    the web debug toolbar
-
-  * **SensioDistributionBundle** (in dev/test env) - Adds functionality for
-    configuring and working with Symfony distributions
-
-  * [**SensioGeneratorBundle**][13] (in dev/test env) - Adds code generation
-    capabilities
-
-  * **AcmeDemoBundle** (in dev/test env) - A demo bundle with some example
-    code
-
-All libraries and bundles included in the Symfony Standard Edition are
-released under the MIT or BSD license.
-
-Enjoy!
-
-[1]:  http://symfony.com/doc/2.6/book/installation.html
-[2]:  http://getcomposer.org/
-[3]:  http://symfony.com/download
-[4]:  http://symfony.com/doc/2.6/quick_tour/the_big_picture.html
-[5]:  http://symfony.com/doc/2.6/index.html
-[6]:  http://symfony.com/doc/2.6/bundles/SensioFrameworkExtraBundle/index.html
-[7]:  http://symfony.com/doc/2.6/book/doctrine.html
-[8]:  http://symfony.com/doc/2.6/book/templating.html
-[9]:  http://symfony.com/doc/2.6/book/security.html
-[10]: http://symfony.com/doc/2.6/cookbook/email.html
-[11]: http://symfony.com/doc/2.6/cookbook/logging/monolog.html
-[12]: http://symfony.com/doc/2.6/cookbook/assetic/asset_management.html
-[13]: http://symfony.com/doc/2.6/bundles/SensioGeneratorBundle/index.html

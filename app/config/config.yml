@@ -30,6 +30,19 @@ fos_user:
     firewall_name: main
     user_class: Acme\UserBundle\Entity\User
 
+sonata_block:
+    default_contexts: [cms]
+    blocks:
+        # Enable the SonataAdminBundle block
+        sonata.admin.block.admin_list:
+            contexts:   [admin]
+        # Your other blocks
+knp_menu:
+    twig:  # use "twig: false" to disable the Twig extension and the TwigRenderer
+        template: knp_menu.html.twig
+    templating: false # if true, enables the helper for PHP templates
+    default_renderer: twig # The renderer to use, list is also available by default
+
 # Twig Configuration
 twig:
     debug:            "%kernel.debug%"
