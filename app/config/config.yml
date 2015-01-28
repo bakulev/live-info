@@ -25,6 +25,11 @@ framework:
     fragments:       ~
     http_method_override: true
 
+fos_user:
+    db_driver: orm
+    firewall_name: main
+    user_class: Acme\UserBundle\Entity\User
+
 # Twig Configuration
 twig:
     debug:            "%kernel.debug%"
@@ -59,7 +64,8 @@ doctrine:
         #   2. Uncomment database_path in parameters.yml.dist
         #   3. Uncomment next line:
         #     path:     "%database_path%"
-
+        mapping_types:
+            enum: string
     orm:
         auto_generate_proxy_classes: "%kernel.debug%"
         auto_mapping: true
