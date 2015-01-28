@@ -264,10 +264,11 @@ sudo bin/chmod-www-data.sh
 Используется инструкция (http://sonata-project.org/bundles/admin/master/doc/reference/installation.html)
 
 ```bash
-composer require sonata-project/admin-bundle
-composer require sonata-project/block-bundle
-composer require knplabs/knp-menu-bundle
-composer require sonata-project/doctrine-orm-admin-bundle
+composer require sonata-project/admin-bundle --no-update
+composer require sonata-project/block-bundle --no-update
+composer require knplabs/knp-menu-bundle --no-update
+composer require sonata-project/doctrine-orm-admin-bundle --no-update
+composer update
 ```
 
 Добавить в `AppKernel.php`:
@@ -348,11 +349,13 @@ vi src/Acme/DemoBundle/Admin/PostAdmin.php
 vi src/Acme/DemoBundle/DependencyInjection/AcmeDemoBundleExtension.php
 ```
 
-Установка **SonataUserBundle**
+##Установка **SonataUserBundle**
+
+Используется инструкция (http://sonata-project.org/bundles/user/master/doc/reference/installation.html)
 ```bash
 sudo chown -R bakulev.bakulev app/cache
 sudo chown -R bakulev.bakulev app/logs
-composer require sonata-project/easy-extends-bundle
+composer require sonata-project/easy-extends-bundle --no-update
 composer require sonata-project/user-bundle --no-update
 composer update
 ```
@@ -364,9 +367,66 @@ new Sonata\UserBundle\SonataUserBundle('FOSUserBundle'),
 ```
 
 Добавление конфигурации в `app/config/config.yml`
+Изменение путей как описано по ссылке (https://github.com/sonata-project/SonataUserBundle/issues/485).
 
-Установка авторизации через соц. сети: (https://github.com/hwi/HWIOAuthBundle/blob/master/Resources/doc/index.md)
+Создаётся расширенный класс для управления сущностями пользователей и групп:
+```bash
+php app/console sonata:easy-extends:generate SonataUserBundle -d src
+```
+Созданный класс добавляется в `app/AppKernel.php`:
+```php
+new Application\Sonata\UserBundle\ApplicationSonataUserBundle(),
+```
+Переносится XML конфигурация из файлов `src/Application/Sonata/UserBundle/Resources/config/doctrine/User.orm.xml` и `src/Application/Sonata/UserBundle/Resources/config/doctrine/Group.orm.xml` в формат annotate в файлах `src/Application/Sonata/UserBundle/Entity/User.php` и `src/Application/Sonata/UserBundle/Entity/User.php` соответственно:
+```php
+/**
+ * @ORM\Entity
+ * @ORM\Table(name="fos_user_user")
+ */
+class User extends BaseUser
+{
+    /**
+     * @ORM\Id
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    protected $id;
+...
+```
+Проверяется корректность отображений:
+```bash
+php app/console doctrine:mapping:info
+php app/console doctrine:schema:validate
+```
+Обновляется база данных:
+```bash
+php app/console doctrine:schema:update --force
+```
+Создаются необходимые пользователи:
+```bash
+php app/console fos:user:create admin --super-admin
+php app/console fos:user:create testuser test@example.com p@ssword
+```
+Загружается рабочая версия:
+```bash
+git commit -am "Добавлен SonataUserBundle"
+git checkout master
+git merge sonata_user
+git push github master
+git push heroku master
+sudo bin/chmod-bakulev.sh
+php app/console cache:clear
+php app/console route:debug
+sudo bin/chmod-www-data.sh
+```
+Можно смотреть результат на (http://live-info-symfony.herokuapp.com/admin/sonata/user/user/list) и на (http://virt-srv1.mipt.ru/live-info/web/app_dev.php/admin/sonata/user/user/list)
+
+##Установка авторизации через соц. сети
+Используется готовая реализация (https://github.com/hwi/HWIOAuthBundle/blob/master/Resources/doc/index.md)
 Интеграция **FOSUserBundle** и **HWIOAuthBundle** (https://gist.github.com/danvbe/4476697)
 
+##ToDo
+Остановился на добавлении авторизации через соц.сети.
+Надо ещё сделать тему оформления wrapbootstrap-unicorn-admin-template
 
 
